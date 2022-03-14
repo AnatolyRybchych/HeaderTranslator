@@ -1,0 +1,15 @@
+/home/anatoly/Desktop/headerTranslator/bin/Debug/net6.0/headerTranslator
+/home/anatoly/Desktop/headerTranslator/bin/Debug/net6.0/headerTranslator.deps.json
+/home/anatoly/Desktop/headerTranslator/bin/Debug/net6.0/headerTranslator.runtimeconfig.json
+/home/anatoly/Desktop/headerTranslator/bin/Debug/net6.0/headerTranslator.dll
+/home/anatoly/Desktop/headerTranslator/bin/Debug/net6.0/headerTranslator.pdb
+/home/anatoly/Desktop/headerTranslator/obj/Debug/net6.0/headerTranslator.csproj.AssemblyReference.cache
+/home/anatoly/Desktop/headerTranslator/obj/Debug/net6.0/headerTranslator.GeneratedMSBuildEditorConfig.editorconfig
+/home/anatoly/Desktop/headerTranslator/obj/Debug/net6.0/headerTranslator.AssemblyInfoInputs.cache
+/home/anatoly/Desktop/headerTranslator/obj/Debug/net6.0/headerTranslator.AssemblyInfo.cs
+/home/anatoly/Desktop/headerTranslator/obj/Debug/net6.0/headerTranslator.csproj.CoreCompileInputs.cache
+/home/anatoly/Desktop/headerTranslator/obj/Debug/net6.0/headerTranslator.dll
+/home/anatoly/Desktop/headerTranslator/obj/Debug/net6.0/refint/headerTranslator.dll
+/home/anatoly/Desktop/headerTranslator/obj/Debug/net6.0/headerTranslator.pdb
+/home/anatoly/Desktop/headerTranslator/obj/Debug/net6.0/headerTranslator.genruntimeconfig.cache
+/home/anatoly/Desktop/headerTranslator/obj/Debug/net6.0/ref/headerTranslator.dll
