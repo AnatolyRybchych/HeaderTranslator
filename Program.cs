@@ -1,6 +1,10 @@
 ﻿
-namespace HeaderTranslator;
+
 using System;
+using System.Text;
+using HeaderTranslator.ParserC;
+
+namespace HeaderTranslator;
 
 class Program{
     static void Main(string[] args){
@@ -25,9 +29,11 @@ class Program{
         Gcc gcc = new Gcc();
 
         gcc.Preprocess(file, compiller);
-
-        HeaderTranslator translator = new HeaderTranslator(gcc.Result, Path.GetFileNameWithoutExtension(args[0]));
-        System.Console.WriteLine(translator.Translate());
         
-    }
+        ParserC.Parser parser= new ParserC.Parser(gcc.Result);
+        parser.Parse();
+
+        CSWriter writer = new CSWriter();
+        Console.WriteLine(writer.Write(parser));;
+    } 
 }
