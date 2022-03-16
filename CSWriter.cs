@@ -215,7 +215,7 @@ public class CSWriter
             if(type.Unsigned) res += "ulong";
             else res += "long";
         }
-        else if(type.Name == "char" || type.Name == "float"  || type.Name == "double" )
+        else if(type.Name == "char" || type.Name == "float"  || type.Name == "double" || type.Name == "void" )
         {
             res += type.Name;
         }

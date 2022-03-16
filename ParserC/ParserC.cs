@@ -39,6 +39,8 @@ public class Parser
         this.headerSource = new Regex(@"\bclass\b").Replace(this.headerSource, "class_");
         this.headerSource = new Regex(@"\bevent\b").Replace(this.headerSource, "event_");
         this.headerSource = new Regex(@"\bstring\b").Replace(this.headerSource, "string_");
+        this.headerSource = new Regex(@"\bbase\b").Replace(this.headerSource, "base_");
+        this.headerSource = new Regex(@"\bparams\b").Replace(this.headerSource, "params_");
     }
 
     public void Parse()
@@ -113,32 +115,68 @@ public class Parser
             List<Variable> functionArgs = new List<Variable>();
 
             var argMatches = Regex.Matches(args,
-            $"(?<struct>struct\\s+)?(?<type>(?<unsigned>unsigned\\s+)?(?<signed>signed\\s+)?(?<short>short\\s+)?(?<long>long\\s+)*(?<type_name>{RSymbolName}))(?:(?:\\s+)|(?<ptr>(?:\\s*[*]\\s*)+))(?<arg_name>{RSymbolName})?");
+            $"(?<struct>struct\\s+)?(?<type>(?<unsigned>unsigned\\s+)?(?<signed>signed\\s+)?(?<short>short\\s+)?(?<long>long\\s+)*(?<type_name>{RSymbolName}))(?:(?:\\s+)|(?<ptr>(?:\\s*[*]\\s*)+))(?<arg_name>{RSymbolName})|(?:[;)])");
 
-            foreach (Match argMatch in argMatches)
+            foreach (string arg in args.Split(new char[]{',', ')', '('}).Where(arg => !string.IsNullOrWhiteSpace(arg)))
             {
-                string arg_name = argMatch.Groups["arg_name"].Value;
-                string arg_type = argMatch.Groups["type"].Value;
-                string arg_type_name = argMatch.Groups["type_name"].Value;
-                string arg_ptr = match.Groups["ptr"].Value;
+                // string arg_name = argMatch.Groups["arg_name"].Value;
+                // string arg_type = argMatch.Groups["type"].Value;
+                // string arg_type_name = argMatch.Groups["type_name"].Value;
+                // string arg_ptr = match.Groups["ptr"].Value;
 
-                string arg_struct = argMatch.Groups["struct"].Value;
-                string arg_unsigned = argMatch.Groups["unsigned"].Value;
-                string arg_signed = argMatch.Groups["signed"].Value;
-                string arg_short = argMatch.Groups["short"].Value;
-                string arg_long = argMatch.Groups["long"].Value;
+                // string arg_struct = argMatch.Groups["struct"].Value;
+                // string arg_unsigned = argMatch.Groups["unsigned"].Value;
+                // string arg_signed = argMatch.Groups["signed"].Value;
+                // string arg_short = argMatch.Groups["short"].Value;
+                // string arg_long = argMatch.Groups["long"].Value;
+                
 
+                if(arg.Split(' ').Count() == 0) continue;
+
+                bool arg_unsigned = arg.Contains("unseigned");
+                bool arg_signed = arg.Contains("signed");
+                bool arg_long = arg.Contains("long");
+                bool arg_short = arg.Contains("short");
+
+                int prtVolume = arg.Where(ch => ch == '*').Count();
+
+                string argTmp = arg.Replace("unsigned", "").Trim();
+                argTmp = argTmp.Replace("signed", "").Trim();
+                argTmp = argTmp.Replace("struct", "").Trim();
+                argTmp = argTmp.Replace("*", " ").Trim();
+
+                if(argTmp.Contains("char") || argTmp.Contains("int"))
+                {
+                    argTmp = argTmp.Replace("long", "").Trim();
+                    argTmp = argTmp.Replace("short", "").Trim();
+                }
+
+                string[] typeAndName = argTmp.Split(" ").Where(str => !string.IsNullOrWhiteSpace(str)).Select(str => str.Trim()).ToArray();
+                string? arg_name = null;
+                string arg_type = "";
+                if(typeAndName.Length == 0) continue;
+                if(typeAndName.Length == 1) 
+                {
+                    arg_name = null;
+                    arg_type = typeAndName[0].Trim();
+                    if(arg_type == "void" && prtVolume == 0) continue;
+                }
+                else
+                {
+                    arg_name = typeAndName[1].Trim();
+                    arg_type = typeAndName[0].Trim();
+                }
 
                 Type argumentType = new Type(
-                    arg_type_name, 
-                    arg_ptr.Where(ch => ch == '*').Count(),
-                    string.IsNullOrEmpty(arg_unsigned) == false, 
-                    string.IsNullOrEmpty(arg_signed) == false, 
-                    string.IsNullOrEmpty(arg_short) == false, 
-                    string.IsNullOrEmpty(arg_long) == false
+                    arg_type, 
+                    prtVolume,
+                    arg_unsigned, 
+                    arg_signed, 
+                    arg_short, 
+                    arg_long
                 );
 
-                functionArgs.Add(new Variable(argumentType, string.IsNullOrEmpty(arg_name)?null:arg_name ));
+                functionArgs.Add(new Variable(argumentType, arg_name));
             }
 
             Function newFunction = new Function(returnType, name, functionArgs.ToArray());
