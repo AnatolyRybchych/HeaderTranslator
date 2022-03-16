@@ -127,9 +127,9 @@ public class CSWriter
     {
         if(WasWriten(func) == false)
         {
-            return 
-            $"[DllImport(LibPath)]\n" +
+            string result = $"[DllImport(LibPath)]\n" +
             $"public static unsafe extern {WriteType(func.ReturnType)} {func.Name} ({WriteVariables(func.Arguments, ",", ((arg , id)=> $" {WriteVariable(arg, id)}"))});";
+            return result; 
         }
         else
         {
@@ -139,13 +139,14 @@ public class CSWriter
 
     public string WriteVariables(Variable[] vars, string separator , Func<Variable, int, string>? eachVar)
     {
-        return string.Join(separator, vars.Select((var, i) => eachVar?.Invoke(var, i)));
+        string result = string.Join(separator, vars.Select((var, i) => eachVar?.Invoke(var, i)));;
+        return result;
     }
     public string WriteVariable(Variable var, int number)
     {
         string fx = $"{(var.ArrayLength == 1?"":"fixed ")}";
         string arr = $"{(var.ArrayLength == 1?"":$"[{var.ArrayLength}]")}";
-        return $"{fx}{WriteType(var.Type)} {var.Name ?? $"arg{number}"}";
+        return $"{fx}{WriteType(var.Type)} {var.Name ?? $"arg{number}"}{arr}";
     }
 
     public bool WasWriten(IConstruction construction)

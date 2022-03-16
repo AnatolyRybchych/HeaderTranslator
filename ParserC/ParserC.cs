@@ -162,11 +162,11 @@ public class Parser
         {
             string typedef = match.Groups["typedef"].Value;
             string def_name = match.Groups["def_name"].Value;
+            string name = match.Groups["name"].Value;
 
             Struct? newStruct = ParseStruct(match.ToString());
             if(newStruct != null)
             {
-                Structures.Add(newStruct);
 
                 if(string.IsNullOrEmpty(typedef) == false)
                 {
@@ -285,7 +285,7 @@ public class Parser
         return variables.ToArray();
     }
 
-    private const string RSymbolName = @"(?:[A-Za-z_$]+[A-Za-z0-9_$]*)";
+    private const string RSymbolName = @"(?:[A-Za-z_$]+([A-Za-z0-9_$]*?)(?![A-Za-z0-9_$]))";
     private string RInMatchedBlock(string openBlock = @"\{", string closeBlock = @"\}", string body = @"[^{}]+")
     {
         return $"(?:{openBlock}(?>{openBlock}(?<c>)|(?:{body})+|{closeBlock}(?<-c>))*(?(c)(?!)){closeBlock})";

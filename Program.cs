@@ -35,5 +35,13 @@ class Program{
 
         CSWriter writer = new CSWriter();
         Console.WriteLine(writer.Write(parser));;
+
+        Console.WriteLine(
+            "/* errors:\n"+
+            string.Join("\n    ", writer.NotWritedConstructions
+            .Where(ctruct => ctruct.Name != null)
+            .Select(ctruct => $"construction:{{{ctruct.Name}}}, value_c:{{{ctruct.Construction.Source}}}"))+
+            "*/"
+        );
     } 
 }
