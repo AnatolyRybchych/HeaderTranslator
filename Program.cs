@@ -5,7 +5,6 @@ using System.Text;
 using HeaderTranslator.ParserC;
 
 namespace HeaderTranslator;
-
 class Program{
     static void Main(string[] args){
         if(args.Length == 0){

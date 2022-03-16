@@ -118,19 +118,7 @@ public class Parser
             $"(?<struct>struct\\s+)?(?<type>(?<unsigned>unsigned\\s+)?(?<signed>signed\\s+)?(?<short>short\\s+)?(?<long>long\\s+)*(?<type_name>{RSymbolName}))(?:(?:\\s+)|(?<ptr>(?:\\s*[*]\\s*)+))(?<arg_name>{RSymbolName})|(?:[;)])");
 
             foreach (string arg in args.Split(new char[]{',', ')', '('}).Where(arg => !string.IsNullOrWhiteSpace(arg)))
-            {
-                // string arg_name = argMatch.Groups["arg_name"].Value;
-                // string arg_type = argMatch.Groups["type"].Value;
-                // string arg_type_name = argMatch.Groups["type_name"].Value;
-                // string arg_ptr = match.Groups["ptr"].Value;
-
-                // string arg_struct = argMatch.Groups["struct"].Value;
-                // string arg_unsigned = argMatch.Groups["unsigned"].Value;
-                // string arg_signed = argMatch.Groups["signed"].Value;
-                // string arg_short = argMatch.Groups["short"].Value;
-                // string arg_long = argMatch.Groups["long"].Value;
-                
-
+            {               
                 if(arg.Split(' ').Count() == 0) continue;
 
                 bool arg_unsigned = arg.Contains("unseigned");
@@ -154,6 +142,7 @@ public class Parser
                 string[] typeAndName = argTmp.Split(" ").Where(str => !string.IsNullOrWhiteSpace(str)).Select(str => str.Trim()).ToArray();
                 string? arg_name = null;
                 string arg_type = "";
+                int arr_len = 1;
                 if(typeAndName.Length == 0) continue;
                 if(typeAndName.Length == 1) 
                 {
@@ -165,6 +154,13 @@ public class Parser
                 {
                     arg_name = typeAndName[1].Trim();
                     arg_type = typeAndName[0].Trim();
+
+                    Regex arrRegex = new Regex(@"\[.*\]");
+                    var matchesArr = arrRegex.Matches(arg_name);
+                    if(matchesArr.Count() != 0){
+                        arg_name = arrRegex.Replace(arg_name, "");
+                        arg_type += "*";    
+                    }
                 }
 
                 Type argumentType = new Type(
@@ -176,7 +172,7 @@ public class Parser
                     arg_long
                 );
 
-                functionArgs.Add(new Variable(argumentType, arg_name));
+                functionArgs.Add(new Variable(argumentType, arg_name, arr_len));
             }
 
             Function newFunction = new Function(returnType, name, functionArgs.ToArray());

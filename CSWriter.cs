@@ -5,6 +5,8 @@ using HeaderTranslator.ParserC.Constructions;
 
 namespace HeaderTranslator;
 
+using NewType = System.Int32;
+
 public class CSWriter
 {
     public class ConstructionName
@@ -43,7 +45,8 @@ public class CSWriter
     public string Write(Parser parser)
     {
         return
-        $"using System.Runtime.InteropServices;\n\n" +
+        $"using System.Runtime.InteropServices;\n\n" + 
+        WriteTypes(parser.Typedefs)+ "\n\n" +
         $"public static class {OutClass}{{\n" +
 
         Tabulate(
@@ -52,7 +55,6 @@ public class CSWriter
             WriteIntConstants(parser.IntConstantas) + "\n\n" +
             WriteFunctions(parser.Functions) +
             WriteStructures(parser.Structures) + 
-            WriteTypes(parser.Typedefs) +
             WriteUnions(parser.Unions)
         ) +
         $"}}";
@@ -89,7 +91,7 @@ public class CSWriter
         {
             return 
             $"[StructLayout(LayoutKind.Explicit)] \n" +
-            $"public unsafe struct {union.Name} {{{WriteVariables(union.Fields, "", (field, id) => $"\n    [FieldOffset(0)] {WriteVariable(field, id)};" )};\n}}";
+            $"public unsafe struct {union.Name} {{{WriteVariables(union.Fields, "", (field, id) => $"\n    [FieldOffset(0)] public unsafe {WriteVariable(field, id)};" )};\n}}";
         }
         else
         {
@@ -108,14 +110,24 @@ public class CSWriter
             }
             else if(typedef.Pseudoname != null)
             {
-                if(WasWriten(typedef) == false)
-                {
-                    res += $"public unsafe struct {WriteType(typedef.DefinedType)}{{{WriteType(typedef.Pseudoname) } val;}}\n\n";
-                }
+                WriteTypedef(typedef, ref res, typedefs);
             }
         }
 
         return res;
+    }
+
+    private void WriteTypedef(TypeDefinition typedef, ref string result,List<TypeDefinition>typedefs)
+    {
+        var defined = typedefs.Where( td => td.DefinedType.Name.Trim() == typedef.Pseudoname.Name.Trim());
+        if(defined.Count() != 0)
+        {
+            WriteTypedef(new TypeDefinition(typedef.DefinedType.Name, new ParserC.Type(defined.First().Pseudoname.Name)), ref result, typedefs);
+        }
+        else
+        {
+            result  += $"using  {WriteType(typedef.DefinedType)} = {WriteType(typedef.Pseudoname)};\n";
+        }
     }
 
     public string Tabulate(string src)
@@ -132,7 +144,7 @@ public class CSWriter
     {
         if(WasWriten(structure) == false)
         {
-            var res = $"public unsafe struct {structure.Name} {{{WriteVariables(structure.Args, "", (arg, id) => $"\n    {WriteVariable(arg, id)};" )}\n}}";
+            var res = $"public unsafe struct {structure.Name} {{{WriteVariables(structure.Args, "", (arg, id) => $"\n    public unsafe {WriteVariable(arg, id)};" )}\n}}";
             return res;
         }
         else 
@@ -195,27 +207,41 @@ public class CSWriter
         string res = "";
         if(type.Name == "int")
         {
-            if(type.Unsigned) res += "u";
-            if(type.Short) res += "short";
-            else if(type.Long) res += "long";
-            else  res += "int";
+            if(type.Unsigned) res += "System.U";
+            else res += "System.";
+
+            if(type.Short) res += "Int16";
+            else if(type.Long) res += "Int64";
+            else  res += "Int32";
         }
         else if(type.Name == "char")
         {
-            if(type.Unsigned) res += "byte";
-            else res += "sbyte";
+            if(type.Unsigned) res += "System.Byte";
+            else res += "System.SByte";
         }
         else if(type.Name == "short")
         {
-            if(type.Unsigned) res += "ushort";
-            else res += "short";
+            if(type.Unsigned) res += "System.UInt16";
+            else res += "System.Int16";
         }
         else if(type.Name == "long")
         {
-            if(type.Unsigned) res += "ulong";
-            else res += "long";
+            if(type.Unsigned) res += "System.UInt64";
+            else res += "System.Int64";
         }
-        else if(type.Name == "char" || type.Name == "float"  || type.Name == "double" || type.Name == "void" )
+        else if(type.Name == "char"  || type.Name == "double")
+        {
+            res +=  "System."+char.ToUpper(type.Name[0]) + type.Name.Substring(1);
+        }
+        else if(type.Name == "float")
+        {
+            res += "System.Single";
+        }
+        else if(type.Name == "double")
+        {
+            res += "System.Double";
+        }
+        else if(type.Name == "void")
         {
             res += type.Name;
         }
@@ -227,10 +253,9 @@ public class CSWriter
             }
             else
             {
-                return $"IntPtr /*|{type.Name}{new string('*', type.PointerVolume)}|*/ ";
+                return $"System.IntPtr /*|{type.Name}{new string('*', type.PointerVolume)}|*/ ";
             }
         }
-
-        return res + (type.PointerVolume == 0 ? "" : new string('*', type.PointerVolume));
+        return (type.PointerVolume == 0 ? res : $"System.IntPtr /*{res}*/");
     }
 }
