@@ -9,19 +9,24 @@ namespace HeaderTranslator.ParserC;
 public class Parser
 {
     private string headerSource;
+    private string notPreprocessed;
     public List<Struct> Structures { get; set; } = new List<Struct>();
     public List<TypeDefinition> Typedefs { get; set; } = new List<TypeDefinition>();
     public List<Type> Types { get; set; }= new List<Type>();
     public List<Function> Functions { get; set; } = new List<Function>();
     public List<Union> Unions { get; private set; } = new List<Union>();
 
+    public List<KeyValuePair<string, string>> StringConstantas = new List<KeyValuePair<string, string>>();
+    public List<KeyValuePair<string, string>> IntConstantas = new List<KeyValuePair<string, string>>();
+
     public IConstruction[] Constructions => 
         Structures.Select(C => (IConstruction)C)
         .Concat(Typedefs.Select(C => (IConstruction)C))
         .Concat(Functions.Select(C => (IConstruction)C))
         .Concat(Unions.Select(C => (IConstruction)C)).ToArray();
-    public Parser(string headerSource)
+    public Parser(string headerSource, string notPreprocessed)
     {
+        this.notPreprocessed = notPreprocessed;
         this.headerSource = headerSource;
         this.headerSource = new Regex("(?<!(?:\".*))//.*").Replace(this.headerSource, "");//remove comments
         this.headerSource = new Regex(@"#.*").Replace(this.headerSource, "");//remove compiller comments
@@ -41,6 +46,35 @@ public class Parser
         ParseCommonTypesDefinitions();
         ParseStructures();
         ParseFunctionTitles();
+        ParseConstants();
+    }
+
+    private void ParseConstants()
+    {
+        var matches = Regex.Matches(notPreprocessed, 
+        $"#\\s*define\\s+(?<name>\\w+)\\s+(?<value>(.+))\n");
+
+        foreach (Match match in matches)
+        {
+            string name = match.Groups["name"].Value;
+            string value = match.Groups["value"].Value;
+
+            if(Regex.IsMatch(value, $"\".*\""))
+            {
+                if(value.Where(ch => ch == '\"').Count() > 1)
+                {
+                    var m = Regex.Matches(value, RInMatchedBlock("\"", "\"", "[^\"]+")); 
+                    if(m.Count() !=0)
+                    {
+                        StringConstantas.Add(new KeyValuePair<string, string>(name.Trim(), m.First().Value));
+                    }
+                }
+            }
+            else if( !value.Contains("define") && value.Where(ch => char.IsDigit(ch)).Count() != 0)
+            {
+                IntConstantas.Add(new KeyValuePair<string, string>(name, value));
+            }
+        }
     }
 
     private void ParseFunctionTitles()

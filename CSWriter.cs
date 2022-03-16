@@ -47,7 +47,9 @@ public class CSWriter
         $"public static class {OutClass}{{\n" +
 
         Tabulate(
-            $"public const string LibPath = \"{InLibrary}\";" +
+            $"public const string LibPath = \"{InLibrary}\";\n\n\n" +
+            WriteStringConstants(parser.StringConstantas) +
+            WriteIntConstants(parser.IntConstantas) + "\n\n" +
             WriteFunctions(parser.Functions) +
             WriteStructures(parser.Structures) + 
             WriteTypes(parser.Typedefs) +
@@ -59,6 +61,26 @@ public class CSWriter
     private string WriteUnions(List<Union> unions)
     {
         return string.Join("", unions.Select(union => $"{WriteUnion(union)}\n\n"));
+    }
+
+    private string WriteStringConstants(List<KeyValuePair<string, string>> stringConstants)
+    {
+        string result = "";
+        foreach (var strConst in stringConstants)
+        {
+            result += $"public const string {strConst.Key} = {strConst.Value};\n";
+        }
+        return result;
+    }
+
+    private string WriteIntConstants(List<KeyValuePair<string, string>> intConstants)
+    {
+        string result = "";
+        foreach (var intConst in intConstants)
+        {
+            result += $"public const long {intConst.Key} = {intConst.Value};\n";
+        }
+        return result;
     }
 
     private object WriteUnion(Union union)

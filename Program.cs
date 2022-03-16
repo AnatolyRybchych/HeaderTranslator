@@ -30,7 +30,7 @@ class Program{
 
         gcc.Preprocess(file, compiller);
         
-        ParserC.Parser parser= new ParserC.Parser(gcc.Result);
+        ParserC.Parser parser= new ParserC.Parser(gcc.Result, File.ReadAllText(file));
         parser.Parse();
 
         CSWriter writer = new CSWriter();
