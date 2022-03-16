@@ -119,10 +119,14 @@ public class CSWriter
 
     private void WriteTypedef(TypeDefinition typedef, ref string result,List<TypeDefinition>typedefs)
     {
+        if(typedef.Pseudoname == null) return;//its will be newer but to aboid warning pseudoname is nullable type
+
         var defined = typedefs.Where( td => td.DefinedType.Name.Trim() == typedef.Pseudoname.Name.Trim());
         if(defined.Count() != 0)
         {
-            WriteTypedef(new TypeDefinition(typedef.DefinedType.Name, new ParserC.Type(defined.First().Pseudoname.Name)), ref result, typedefs);
+            var firstDefined = defined.First();
+            if(firstDefined.Pseudoname == null) return;
+            WriteTypedef(new TypeDefinition(typedef.DefinedType.Name, new ParserC.Type(firstDefined.Pseudoname.Name)), ref result, typedefs);
         }
         else
         {
